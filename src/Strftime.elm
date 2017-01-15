@@ -31,8 +31,11 @@ format fmt date =
         |> Regex.replace All (regex "%d") (\_ -> zeroPad <| Date.day date)
         |> Regex.replace All (regex "%y") (\_ -> String.right 2 <| toString <| Date.year date)
         |> Regex.replace All (regex "%Y") (\_ -> toString <| Date.year date)
-        |> Regex.replace All (regex "%-I") (\_ -> toString <| Date.hour date)
-        |> Regex.replace All (regex "%I") (\_ -> zeroPad <| Date.hour date)
+        |> Regex.replace All (regex "%-H") (\_ -> toString <| Date.hour date)
+        |> Regex.replace All (regex "%H") (\_ -> zeroPad <| Date.hour date)
+        |> Regex.replace All (regex "%-I") (\_ -> toString <| twentyFourHourToTwelveHour <| Date.hour date)
+        |> Regex.replace All (regex "%I") (\_ -> zeroPad <| twentyFourHourToTwelveHour <| Date.hour date)
+        |> Regex.replace All (regex "%p") (\_ -> amPmString date)
         |> Regex.replace All (regex "%-M") (\_ -> toString <| Date.minute date)
         |> Regex.replace All (regex "%M") (\_ -> zeroPad <| Date.minute date)
 
@@ -198,3 +201,21 @@ abbreviatedMonth date =
 
         Dec ->
             "Dec"
+
+
+twentyFourHourToTwelveHour : Int -> Int
+twentyFourHourToTwelveHour hour =
+    if hour == 0 then
+        12
+    else if hour > 12 then
+        hour - 12
+    else
+        hour
+
+
+amPmString : Date -> String
+amPmString date =
+    if (Date.hour date) > 11 then
+        "PM"
+    else
+        "AM"
