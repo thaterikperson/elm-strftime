@@ -31,6 +31,7 @@ all =
         , yearTests
         , hourTests
         , minuteTests
+        , secondTests
         ]
 
 
@@ -137,4 +138,16 @@ minuteTests =
         , test "Minutes" <|
             \() ->
                 Expect.equal "53" <| Strftime.format "%-M" july02
+        ]
+
+
+secondTests : Test
+secondTests =
+    describe "Second Tests"
+        [ test "Zero-padded seconds" <|
+            \() ->
+                Expect.equal "20" <| Strftime.format "%S" july02
+        , test "Seconds" <|
+            \() ->
+                Expect.equal "20" <| Strftime.format "%-S" july02
         ]
