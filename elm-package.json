@@ -1,5 +1,5 @@
 {
-    "version": "1.0.1",
+    "version": "1.0.2",
     "summary": "Format dates and times following http://strftime.org.",
     "repository": "https://github.com/thaterikperson/elm-strftime.git",
     "license": "BSD3",

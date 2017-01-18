@@ -38,6 +38,8 @@ format fmt date =
         |> Regex.replace All (regex "%p") (\_ -> amPmString date)
         |> Regex.replace All (regex "%-M") (\_ -> toString <| Date.minute date)
         |> Regex.replace All (regex "%M") (\_ -> zeroPad <| Date.minute date)
+        |> Regex.replace All (regex "%-S") (\_ -> toString <| Date.second date)
+        |> Regex.replace All (regex "%S") (\_ -> zeroPad <| Date.second date)
 
 
 zeroPad : Int -> String
