@@ -9,7 +9,9 @@ from http://strftime.org.
 
 import Date exposing (Date, Month(..), Day(..))
 import Regex exposing (..)
+import Result
 import String
+import Time
 
 
 {-| Format a date into a string of your choice. Follow the rules at
@@ -40,6 +42,8 @@ format fmt date =
         |> Regex.replace All (regex "%M") (\_ -> zeroPad <| Date.minute date)
         |> Regex.replace All (regex "%-S") (\_ -> toString <| Date.second date)
         |> Regex.replace All (regex "%S") (\_ -> zeroPad <| Date.second date)
+        |> Regex.replace All (regex "%j") (\_ -> zeroPadThreeSpaces <| dayOfYear date)
+        |> Regex.replace All (regex "%-j") (\_ -> toString <| dayOfYear date)
 
 
 zeroPad : Int -> String
@@ -48,6 +52,47 @@ zeroPad number =
         "0" ++ (toString number)
     else
         toString number
+
+
+zeroPadThreeSpaces : Int -> String
+zeroPadThreeSpaces number =
+    let
+        padded =
+            zeroPad number
+    in
+        if (String.length padded) == 2 then
+            String.cons '0' padded
+        else
+            padded
+
+
+dayOfYear : Date -> Int
+dayOfYear date =
+    let
+        midnightDate =
+            [ Date.year, (Date.month >> monthOfYear), Date.day ]
+                |> List.map (\f -> toString <| f date)
+                |> String.join "/"
+                |> Date.fromString
+                |> Result.withDefault (Date.fromTime 0)
+    in
+        date
+            |> Date.year
+            |> toString
+            |> flip (++) "/01/01"
+            |> Date.fromString
+            |> Result.map
+                (\jan01 ->
+                    let
+                        diff =
+                            (Date.toTime midnightDate) - (Date.toTime jan01)
+
+                        oneDay =
+                            Time.hour * 24
+                    in
+                        (ceiling (diff / oneDay) + 1)
+                )
+            |> Result.withDefault 0
 
 
 numberWeekday : Date -> String
@@ -221,3 +266,43 @@ amPmString date =
         "PM"
     else
         "AM"
+
+
+monthOfYear : Month -> Int
+monthOfYear month =
+    case month of
+        Jan ->
+            1
+
+        Feb ->
+            2
+
+        Mar ->
+            3
+
+        Apr ->
+            4
+
+        May ->
+            5
+
+        Jun ->
+            6
+
+        Jul ->
+            7
+
+        Aug ->
+            8
+
+        Sep ->
+            9
+
+        Oct ->
+            10
+
+        Nov ->
+            11
+
+        Dec ->
+            12
