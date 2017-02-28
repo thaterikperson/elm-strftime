@@ -20,6 +20,13 @@ july02 =
     Date.fromTime 1499000000000
 
 
+jan01 : Date
+jan01 =
+    -- > Date.fromTime 1483246800000
+    -- <Sun Jan 01 2017 00:00:00 GMT-0500 (EST)> : Date.Date
+    Date.fromTime 1483246800000
+
+
 all : Test
 all =
     describe "All Tests"
@@ -53,6 +60,15 @@ dayTests =
         , test "Day of month as zero-padded number" <|
             \() ->
                 Expect.equal "02" <| Strftime.format "%d" july02
+        , test "Day of year as number" <|
+            \() ->
+                Expect.equal "183" <| Strftime.format "%-j" july02
+        , test "Day of year as zero-padded number" <|
+            \() ->
+                Expect.equal "183" <| Strftime.format "%j" july02
+        , test "Day of year as zero-padded number" <|
+            \() ->
+                Expect.equal "001" <| Strftime.format "%j" jan01
         ]
 
 
