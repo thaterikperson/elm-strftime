@@ -65,6 +65,12 @@ monthTests =
         , test "Full month" <|
             \() ->
                 Expect.equal "July" <| Strftime.format "%B" july02
+        , test "Numeric zero-padded month" <|
+            \() ->
+                Expect.equal "07" <| Strftime.format "%m" july02
+        , test "Numeric month" <|
+            \() ->
+                Expect.equal "7" <| Strftime.format "%-m" july02
         ]
 
 

@@ -24,6 +24,8 @@ format fmt date =
     fmt
         |> Regex.replace All (regex "%b") (\_ -> abbreviatedMonth date)
         |> Regex.replace All (regex "%B") (\_ -> fullMonth date)
+        |> Regex.replace All (regex "%-m") (\_ -> toString <| numericMonth date)
+        |> Regex.replace All (regex "%m") (\_ -> zeroPad <| numericMonth date)
         |> Regex.replace All (regex "%a") (\_ -> abbreviatedWeekday date)
         |> Regex.replace All (regex "%A") (\_ -> fullWeekday date)
         |> Regex.replace All (regex "%w") (\_ -> numberWeekday date)
@@ -203,6 +205,46 @@ abbreviatedMonth date =
 
         Dec ->
             "Dec"
+
+
+numericMonth : Date -> Int
+numericMonth date =
+    case Date.month date of
+        Jan ->
+            1
+
+        Feb ->
+            2
+
+        Mar ->
+            3
+
+        Apr ->
+            4
+
+        May ->
+            5
+
+        Jun ->
+            6
+
+        Jul ->
+            7
+
+        Aug ->
+            8
+
+        Sep ->
+            9
+
+        Oct ->
+            10
+
+        Nov ->
+            11
+
+        Dec ->
+            12
 
 
 twentyFourHourToTwelveHour : Int -> Int
