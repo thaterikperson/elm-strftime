@@ -15,16 +15,12 @@ main =
 
 july02 : Date
 july02 =
-    -- > Date.fromTime 1499000000000
-    -- <Sun Jul 02 2017 08:53:20 GMT-0400 (EDT)> : Date.Date
-    Date.fromTime 1499000000000
+    Time.millisToPosix 1499000000000
 
 
 jan01 : Date
 jan01 =
-    -- > Date.fromTime 1483246800000
-    -- <Sun Jan 01 2017 00:00:00 GMT-0500 (EST)> : Date.Date
-    Date.fromTime 1483246800000
+    Time.millisToPosix 1483246800000
 
 
 all : Test
@@ -114,41 +110,41 @@ hourTests =
         july02Midnight =
             july02
                 |> Date.toTime
-                |> flip (-) (Time.hour * 8)
+                |> (\a -> (-) a (Time.hour * 8))
                 |> Date.fromTime
     in
-        describe "Hour Tests"
-            [ test "12-hour zero-padded hour" <|
-                \() ->
-                    Expect.equal "08" <| Strftime.format "%I" july02
-            , test "12-hour hour" <|
-                \() ->
-                    Expect.equal "8" <| Strftime.format "%-I" july02
-            , test "12-hour afternoon" <|
-                \() ->
-                    Expect.equal "8" <| Strftime.format "%-I" july02Afternoon
-            , test "12-hour midnight" <|
-                \() ->
-                    Expect.equal "12" <| Strftime.format "%-I" july02Midnight
-            , test "24-hour zero-padded hour" <|
-                \() ->
-                    Expect.equal "08" <| Strftime.format "%H" july02
-            , test "24-hour hour" <|
-                \() ->
-                    Expect.equal "8" <| Strftime.format "%-H" july02
-            , test "24-hour afternoon" <|
-                \() ->
-                    Expect.equal "20" <| Strftime.format "%-H" july02Afternoon
-            , test "24-hour midnight" <|
-                \() ->
-                    Expect.equal "00" <| Strftime.format "%H" july02Midnight
-            , test "AM" <|
-                \() ->
-                    Expect.equal "AM" <| Strftime.format "%p" july02
-            , test "PM" <|
-                \() ->
-                    Expect.equal "PM" <| Strftime.format "%p" july02Afternoon
-            ]
+    describe "Hour Tests"
+        [ test "12-hour zero-padded hour" <|
+            \() ->
+                Expect.equal "08" <| Strftime.format "%I" july02
+        , test "12-hour hour" <|
+            \() ->
+                Expect.equal "8" <| Strftime.format "%-I" july02
+        , test "12-hour afternoon" <|
+            \() ->
+                Expect.equal "8" <| Strftime.format "%-I" july02Afternoon
+        , test "12-hour midnight" <|
+            \() ->
+                Expect.equal "12" <| Strftime.format "%-I" july02Midnight
+        , test "24-hour zero-padded hour" <|
+            \() ->
+                Expect.equal "08" <| Strftime.format "%H" july02
+        , test "24-hour hour" <|
+            \() ->
+                Expect.equal "8" <| Strftime.format "%-H" july02
+        , test "24-hour afternoon" <|
+            \() ->
+                Expect.equal "20" <| Strftime.format "%-H" july02Afternoon
+        , test "24-hour midnight" <|
+            \() ->
+                Expect.equal "00" <| Strftime.format "%H" july02Midnight
+        , test "AM" <|
+            \() ->
+                Expect.equal "AM" <| Strftime.format "%p" july02
+        , test "PM" <|
+            \() ->
+                Expect.equal "PM" <| Strftime.format "%p" july02Afternoon
+        ]
 
 
 minuteTests : Test

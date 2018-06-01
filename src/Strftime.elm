@@ -1,59 +1,63 @@
 module Strftime exposing (format)
 
 {-| An (incomplete) implementation of the strftime format based on rules
-from http://strftime.org.
+from <http://strftime.org>.
 
 @docs format
 
 -}
 
-import Date exposing (Date, Month(..), Day(..))
-import Regex exposing (..)
+import Regex
 import Result
 import String
-import Time
+import Time exposing (Month(..), Posix, Weekday(..), Zone)
 
 
-{-| Format a date into a string of your choice. Follow the rules at
-http://strftime.org.
+{-| Format a time into a string of your choice. Follow the rules at
+<http://strftime.org>.
 
 Examples
 
-    format "%d %B %y" (Date.fromTime 1499000000000) == "02 July 17"
+    Strftime.format "%d %B %y" Time.utc (Time.millisToPosix 1499000000000) == "02 July 17"
+
 -}
-format : String -> Date -> String
-format fmt date =
+format : String -> Zone -> Posix -> String
+format fmt zone time =
     fmt
-        |> Regex.replace All (regex "%b") (\_ -> abbreviatedMonth date)
-        |> Regex.replace All (regex "%B") (\_ -> fullMonth date)
-        |> Regex.replace All (regex "%-m") (\_ -> toString <| numericMonth date)
-        |> Regex.replace All (regex "%m") (\_ -> zeroPad <| numericMonth date)
-        |> Regex.replace All (regex "%a") (\_ -> abbreviatedWeekday date)
-        |> Regex.replace All (regex "%A") (\_ -> fullWeekday date)
-        |> Regex.replace All (regex "%w") (\_ -> numberWeekday date)
-        |> Regex.replace All (regex "%-d") (\_ -> toString <| Date.day date)
-        |> Regex.replace All (regex "%d") (\_ -> zeroPad <| Date.day date)
-        |> Regex.replace All (regex "%y") (\_ -> String.right 2 <| toString <| Date.year date)
-        |> Regex.replace All (regex "%Y") (\_ -> toString <| Date.year date)
-        |> Regex.replace All (regex "%-H") (\_ -> toString <| Date.hour date)
-        |> Regex.replace All (regex "%H") (\_ -> zeroPad <| Date.hour date)
-        |> Regex.replace All (regex "%-I") (\_ -> toString <| twentyFourHourToTwelveHour <| Date.hour date)
-        |> Regex.replace All (regex "%I") (\_ -> zeroPad <| twentyFourHourToTwelveHour <| Date.hour date)
-        |> Regex.replace All (regex "%p") (\_ -> amPmString date)
-        |> Regex.replace All (regex "%-M") (\_ -> toString <| Date.minute date)
-        |> Regex.replace All (regex "%M") (\_ -> zeroPad <| Date.minute date)
-        |> Regex.replace All (regex "%-S") (\_ -> toString <| Date.second date)
-        |> Regex.replace All (regex "%S") (\_ -> zeroPad <| Date.second date)
-        |> Regex.replace All (regex "%j") (\_ -> zeroPadThreeSpaces <| dayOfYear date)
-        |> Regex.replace All (regex "%-j") (\_ -> toString <| dayOfYear date)
+        |> Regex.replace (regex "%b") (\_ -> abbreviatedMonth zone time)
+        |> Regex.replace (regex "%B") (\_ -> fullMonth zone time)
+        |> Regex.replace (regex "%-m") (\_ -> String.fromInt <| numericMonth zone time)
+        |> Regex.replace (regex "%m") (\_ -> zeroPad <| numericMonth zone time)
+        |> Regex.replace (regex "%a") (\_ -> abbreviatedWeekday zone time)
+        |> Regex.replace (regex "%A") (\_ -> fullWeekday zone time)
+        |> Regex.replace (regex "%w") (\_ -> numberWeekday zone time)
+        |> Regex.replace (regex "%-d") (\_ -> String.fromInt <| Time.toDay zone time)
+        |> Regex.replace (regex "%d") (\_ -> zeroPad <| Time.toDay zone time)
+        |> Regex.replace (regex "%y") (\_ -> String.right 2 <| String.fromInt <| Time.toYear zone time)
+        |> Regex.replace (regex "%Y") (\_ -> String.fromInt <| Time.toYear zone time)
+        |> Regex.replace (regex "%-H") (\_ -> String.fromInt <| Time.toHour zone time)
+        |> Regex.replace (regex "%H") (\_ -> zeroPad <| Time.toHour zone time)
+        |> Regex.replace (regex "%-I") (\_ -> String.fromInt <| twentyFourHourToTwelveHour <| Time.toHour zone time)
+        |> Regex.replace (regex "%I") (\_ -> zeroPad <| twentyFourHourToTwelveHour <| Time.toHour zone time)
+        |> Regex.replace (regex "%p") (\_ -> amPmString zone time)
+        |> Regex.replace (regex "%-M") (\_ -> String.fromInt <| Time.toMinute zone time)
+        |> Regex.replace (regex "%M") (\_ -> zeroPad <| Time.toMinute zone time)
+        |> Regex.replace (regex "%-S") (\_ -> String.fromInt <| Time.toSecond zone time)
+        |> Regex.replace (regex "%S") (\_ -> zeroPad <| Time.toSecond zone time)
+
+
+regex : String -> Regex.Regex
+regex =
+    Regex.fromString >> Maybe.withDefault Regex.never
 
 
 zeroPad : Int -> String
 zeroPad number =
     if number < 10 then
-        "0" ++ (toString number)
+        "0" ++ String.fromInt number
+
     else
-        toString number
+        String.fromInt number
 
 
 zeroPadThreeSpaces : Int -> String
@@ -62,44 +66,16 @@ zeroPadThreeSpaces number =
         padded =
             zeroPad number
     in
-        if (String.length padded) == 2 then
-            String.cons '0' padded
-        else
-            padded
+    if String.length padded == 2 then
+        String.cons '0' padded
+
+    else
+        padded
 
 
-dayOfYear : Date -> Int
-dayOfYear date =
-    let
-        midnightDate =
-            [ Date.year, (Date.month >> monthOfYear), Date.day ]
-                |> List.map (\f -> toString <| f date)
-                |> String.join "/"
-                |> Date.fromString
-                |> Result.withDefault (Date.fromTime 0)
-    in
-        date
-            |> Date.year
-            |> toString
-            |> flip (++) "/01/01"
-            |> Date.fromString
-            |> Result.map
-                (\jan01 ->
-                    let
-                        diff =
-                            (Date.toTime midnightDate) - (Date.toTime jan01)
-
-                        oneDay =
-                            Time.hour * 24
-                    in
-                        (ceiling (diff / oneDay) + 1)
-                )
-            |> Result.withDefault 0
-
-
-numberWeekday : Date -> String
-numberWeekday date =
-    case Date.dayOfWeek date of
+numberWeekday : Zone -> Posix -> String
+numberWeekday zone time =
+    case Time.toWeekday zone time of
         Sun ->
             "0"
 
@@ -122,9 +98,9 @@ numberWeekday date =
             "6"
 
 
-fullWeekday : Date -> String
-fullWeekday date =
-    case Date.dayOfWeek date of
+fullWeekday : Zone -> Posix -> String
+fullWeekday zone time =
+    case Time.toWeekday zone time of
         Mon ->
             "Monday"
 
@@ -147,9 +123,9 @@ fullWeekday date =
             "Sunday"
 
 
-abbreviatedWeekday : Date -> String
-abbreviatedWeekday date =
-    case Date.dayOfWeek date of
+abbreviatedWeekday : Zone -> Posix -> String
+abbreviatedWeekday zone time =
+    case Time.toWeekday zone time of
         Mon ->
             "Mon"
 
@@ -172,9 +148,9 @@ abbreviatedWeekday date =
             "Sun"
 
 
-fullMonth : Date -> String
-fullMonth date =
-    case Date.month date of
+fullMonth : Zone -> Posix -> String
+fullMonth zone time =
+    case Time.toMonth zone time of
         Jan ->
             "January"
 
@@ -212,9 +188,9 @@ fullMonth date =
             "December"
 
 
-abbreviatedMonth : Date -> String
-abbreviatedMonth date =
-    case Date.month date of
+abbreviatedMonth : Zone -> Posix -> String
+abbreviatedMonth zone time =
+    case Time.toMonth zone time of
         Jan ->
             "Jan"
 
@@ -252,9 +228,9 @@ abbreviatedMonth date =
             "Dec"
 
 
-numericMonth : Date -> Int
-numericMonth date =
-    case Date.month date of
+numericMonth : Zone -> Posix -> Int
+numericMonth zone time =
+    case Time.toMonth zone time of
         Jan ->
             1
 
@@ -296,16 +272,19 @@ twentyFourHourToTwelveHour : Int -> Int
 twentyFourHourToTwelveHour hour =
     if hour == 0 then
         12
+
     else if hour > 12 then
         hour - 12
+
     else
         hour
 
 
-amPmString : Date -> String
-amPmString date =
-    if (Date.hour date) > 11 then
+amPmString : Zone -> Posix -> String
+amPmString zone time =
+    if Time.toHour zone time > 11 then
         "PM"
+
     else
         "AM"
 
