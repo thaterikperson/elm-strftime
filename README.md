@@ -8,8 +8,7 @@ from [http://strftime.org](http://strftime.org).
 ```elm
 import Strftime exposing (format)
 
+format "%d %B %y" Time.utc (Time.millisToPosix 1499000000000) == "02 July 17"
 
-format "%d %b %y" (Date.fromTime 1499000000000) == "02 Jul 17"
-
-format "%B %d %Y, %-I:%M" (Date.fromTime 1490000000000) == "March 20 2017, 4:53"
+format "%B %d %Y, %-I:%M" Time.utc (Time.millisToPosix 1499000000000) == "March 20 2017, 4:53"
 ```
